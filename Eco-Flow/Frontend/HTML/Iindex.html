@@ -1,94 +1,121 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Metadatos básicos del documento -->
     <meta charset="UTF-8">
+    <!-- Configuración de la vista para dispositivos móviles -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Título de la página que aparece en la pestaña del navegador -->
     <title>Interactive Dashboard</title>
+    
+    <!-- Hojas de estilo CSS -->
+    <!-- Estilos personalizados de la aplicación -->
     <link rel="stylesheet" href="../CSS/stile.css">
+    <!-- Estilos de Leaflet para mapas interactivos -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <!-- Estilos para el cálculo y visualización de rutas en el mapa -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <!-- Estilos para la visualización del flujo de tráfico de TomTom -->
     <link rel='stylesheet' type='text/css' href='https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/TrafficFlow/1.0.1/TrafficFlow.css'/>
+    
+    <!-- Scripts JavaScript -->
+    <!-- API de TomTom para información de tráfico en tiempo real -->
     <script src='https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/TrafficFlow/1.0.1/TrafficFlow-web.js'></script>
+    <!-- Biblioteca principal de Leaflet para mapas interactivos -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <!-- Extensión de Leaflet para cálculo y visualización de rutas -->
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <!-- Chart.js para la creación de gráficos estadísticos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+    <!-- Dashboard principal que contiene todas las secciones de la aplicación -->
     <div class="dashboard">
-        
-        <!-- 
-            Este bloque de código define una sección de la interfaz de usuario para un mapa interactivo.
-            - Contenedor principal: "map-container" con el ID "map", que actúa como envoltorio para los elementos del mapa.
-            - Controles de búsqueda: Incluye una caja de búsqueda con dos campos de entrada de texto:
-                - "punto-a": Para ingresar el origen (por ejemplo, un lugar específico como "Parque del perro").
-                - "punto-b": Para ingresar el destino (por ejemplo, un lugar específico como "Parque del cholado, Jamundí").
-                - Botón "buscar-ruta": Permite al usuario iniciar la búsqueda de una ruta entre los puntos especificados.
-            - Contenedor del mapa: "mapid", donde se renderizará el mapa interactivo.
-        -->
+        <!-- Contenedor del mapa interactivo y los controles de búsqueda -->
         <div class="map-container" id="map">
+            <!-- Sección de controles para búsqueda de rutas -->
             <div class="search-controls">
+                <!-- Caja de búsqueda con campos de entrada para origen y destino -->
                 <div class="search-box">
+                    <!-- Contenedor para el punto de origen con sugerencias automáticas -->
                     <div class="input-container">
                         <input type="text" id="punto-a" placeholder="Origen (ej: Parque del perro)">
                         <div id="sugerencias-a" class="sugerencias"></div>
                     </div>
+                    <!-- Contenedor para el punto de destino con sugerencias automáticas -->
                     <div class="input-container">
                         <input type="text" id="punto-b" placeholder="Destino (ej: Parque del cholado, Jamundí)">
                         <div id="sugerencias-b" class="sugerencias"></div>
                     </div>
+                    <!-- Botón para iniciar la búsqueda de la ruta entre los puntos seleccionados -->
                     <button id="buscar-ruta">Buscar ruta</button>
                 </div>
             </div>
+            <!-- Contenedor donde se renderiza el mapa de Leaflet -->
             <div id="mapid"></div>
         </div>
 
-        
+        <!-- Contenedor para la visualización de análisis y estadísticas -->
         <div class="analysis-container">
-            <div class="chart" id="bar-chart">
-                <canvas id="bar-chart-canvas"></canvas>
-            </div>
-            <div class="chart" id="pie-chart">
-                <canvas id="pie-chart-canvas"></canvas>
-            </div>
-            <div class="chart" id="line-chart">
-                <canvas id="line-chart-canvas"></canvas>
+            <!-- Sección de gráficos estadísticos generados con Chart.js -->
+            <div class="charts-section">
+                <!-- Gráfico de barras para comparar datos cuantitativos -->
+                <div class="chart" id="bar-chart">
+                    <canvas id="bar-chart-canvas"></canvas>
+                </div>
+                <!-- Gráfico circular para mostrar proporciones y porcentajes -->
+                <div class="chart" id="pie-chart">
+                    <canvas id="pie-chart-canvas"></canvas>
+                </div>
+                <!-- Gráfico de líneas para mostrar tendencias a lo largo del tiempo -->
+                <div class="chart" id="line-chart">
+                    <canvas id="line-chart-canvas"></canvas>
+                </div>
             </div>
 
-            <div class="kpi-container">
-                <div class="kpi">Optimizacion CO₂: <span>20%</span></div>
-                <div class="kpi">Reduccion de Tiempo: <span>15%</span></div>
-                <div class="kpi">Optimizado uso de Combustible: <span>10%</span></div>
-            </div>
-            <div class="data-table">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Opciones</th>
-                            <th>Cantidad</th>
-                            <th>Pilatización</th>
-                            <th>Distancia</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Opción 1</td>
-                            <td>50</td>
-                            <td>Sí</td>
-                            <td>30 km</td>
-                        </tr>
-                        <tr>
-                            <td>Opción 2</td>
-                            <td>40</td>
-                            <td>No</td>
-                            <td>20 km</td>
-                        </tr>
-                        <!-- Agrega más filas según sea necesario -->
-                    </tbody>
-                </table>
+            <!-- Sección para mostrar datos numéricos y tablas -->
+            <div class="data-section">
+                <!-- Contenedor de Indicadores Clave de Rendimiento (KPIs) -->
+                <div class="kpi-container">
+                    <div class="kpi">Optimizacion CO₂: <span>20%</span></div>
+                    <div class="kpi">Reduccion de Tiempo: <span>15%</span></div>
+                    <div class="kpi">Optimizado uso de Combustible: <span>10%</span></div>
+                </div>
+                <!-- Envoltorio para la tabla de datos -->
+                <div class="table-wrapper">
+                    <!-- Tabla con información detallada de las opciones de ruta -->
+                    <div class="data-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Opciones</th>
+                                    <th>Cantidad</th>
+                                    <th>Pilatización</th>
+                                    <th>Distancia</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Opción 1</td>
+                                    <td>50</td>
+                                    <td>Sí</td>
+                                    <td>30 km</td>
+                                </tr>
+                                <tr>
+                                    <td>Opción 2</td>
+                                    <td>40</td>
+                                    <td>No</td>
+                                    <td>20 km</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Enlace al archivo JavaScript con la lógica de la aplicación -->
     <script src="../JS/scripts.js"></script>
 </body>
 </html>

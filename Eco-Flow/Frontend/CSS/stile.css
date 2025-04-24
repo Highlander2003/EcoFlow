@@ -1,172 +1,293 @@
+/* Estilos base responsive - Define configuración básica para todos los elementos */
+* {
+    box-sizing: border-box; /* Incluye padding y borde en el ancho/alto total */
+    margin: 0; /* Elimina márgenes predeterminados */
+    padding: 0; /* Elimina rellenos predeterminados */
+}
+
 body {
-    margin: 0;
-    font-family: 'Arial', sans-serif;
-    background-color: #f4f4f4;
+    font-family: Arial, sans-serif; /* Tipografía principal */
+    line-height: 1.6; /* Espaciado entre líneas para mejor legibilidad */
+    background-color: #f4f4f4; /* Color de fondo suave para toda la página */
 }
 
+/* Estilos para el dashboard principal - Contenedor general de la aplicación */
 .dashboard {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    height: 100vh;
-    gap: 10px;
+    display: flex;
+    flex-direction: column; /* Elementos apilados verticalmente en móviles */
+    width: 100%;
+    max-width: 1800px; /* Limita el ancho máximo en pantallas grandes */
+    margin: 0 auto; /* Centra el dashboard */
+    padding: 15px;
+    gap: 20px; /* Espacio entre elementos hijos */
 }
 
+/* Estilos para el contenedor del mapa - Sección donde se muestra el mapa */
 .map-container {
-    position: relative;
-    height: 100%;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-
+    width: 100%;
+    border-radius: 10px; /* Esquinas redondeadas */
+    overflow: hidden; /* Previene que el mapa sobresalga de las esquinas redondeadas */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra sutil para elevación visual */
+    display: flex;
+    flex-direction: column;
 }
 
 #mapid {
-    height: 100%;
-}
-
-.analysis-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 10px;
-}
-
-.chart {
-    flex: 1;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    background-color: white;
-    padding: 0px;
-    margin-bottom: 0px;
-}
-
-.kpi-container {
-    display: flex;
-    gap: 10px;
-    justify-content: space-around;
-    padding: 10px;
-    background-color: #ffffff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.kpi {
-    flex: 1;
-    text-align: center;
-    font-size: 1.2em;
-}
-
-.data-table {
-    flex: 1;
-    overflow-y: auto;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    background-color: #ffffff;
-    padding: 10px;
-}
-
-table {
     width: 100%;
-    border-collapse: collapse;
+    height: 400px; /* Altura fija para móviles */
 }
 
-th, td {
-    padding: 8px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-}
-
-@media (max-width: 768px) {
-    .dashboard {
-        grid-template-columns: 1fr;
-        grid-template-rows: 1fr 1fr;
-    }
-}
-
+/* Estilos para los controles de búsqueda - Barra de búsqueda sobre el mapa */
 .search-controls {
-    position: absolute;
+    position: absolute; /* Posicionamiento absoluto sobre el mapa */
     top: 10px;
     left: 20%;
     right: 10px;
-    z-index: 1000;
-    background: white;
-    padding: 10px;
+    z-index: 1000; /* Asegura que esté por encima del mapa */
+    padding: 15px;
+    background-color: #f5f5f5;
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 .search-box {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column; /* Apilados en móvil, en fila en pantallas más grandes */
     gap: 10px;
 }
 
-.search-box input {
-    flex-grow: 1;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    min-width: 200px;
-}
-
-.search-box button {
-    padding: 8px 15px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.search-box button:hover {
-    background-color: #45a049;
-}
-
-@media (max-width: 768px) {
-    .search-box {
-        flex-direction: column;
-    }
-}
-
+/* Contenedor para los inputs de búsqueda */
 .input-container {
-    position: relative;
-    flex-grow: 1;
+    position: relative; /* Para posicionar las sugerencias correctamente */
+    width: 100%;
 }
 
+.input-container input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* Desplegable de sugerencias durante la búsqueda */
 .sugerencias {
     position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background-color: white;
-    border: 1px solid #ccc;
+    width: 100%;
+    background: white;
+    border: 1px solid #ddd;
     border-top: none;
-    border-radius: 0 0 4px 4px;
+    z-index: 1000;
     max-height: 150px;
-    overflow-y: auto;
-    z-index: 1001;
-    display: none;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    overflow-y: auto; /* Scroll vertical si hay muchas sugerencias */
+    display: none; /* Oculto por defecto, se muestra con JavaScript */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* Elementos individuales en la lista de sugerencias */
 .sugerencia-item {
     padding: 8px 10px;
-    cursor: pointer;
+    cursor: pointer; /* Indica que es clickeable */
     border-bottom: 1px solid #f0f0f0;
 }
 
 .sugerencia-item:hover {
-    background-color: #f5f5f5;
+    background-color: #f5f5f5; /* Efecto al pasar el cursor */
 }
 
 .sugerencia-item:last-child {
-    border-bottom: none;
+    border-bottom: none; /* Elimina el borde del último elemento */
 }
 
 .sugerencia-principal {
-    font-weight: bold;
+    font-weight: bold; /* Texto principal de la sugerencia */
 }
 
 .sugerencia-secundaria {
-    font-size: 0.8em;
+    font-size: 0.8em; /* Texto informativo adicional más pequeño */
     color: #666;
 }
 
+/* Botón para iniciar la búsqueda de ruta */
+button#buscar-ruta {
+    padding: 10px;
+    background-color: #4CAF50; /* Verde para acción positiva */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+button#buscar-ruta:hover {
+    background-color: #45a049; /* Verde más oscuro al pasar el cursor */
+}
+
+/* Estilos para el contenedor de análisis - Sección de gráficos y datos */
+.analysis-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 10px;
+}
+
+/* Sección donde se muestran los gráficos */
+.charts-section {
+    display: flex;
+    flex-direction: column; /* En móvil, columna única */
+    gap: 20px;
+}
+
+/* Contenedor individual para cada gráfico */
+.chart {
+    background-color: white;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    height: 300px;
+}
+
+/* Sección para datos estadísticos y tablas */
+.data-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Contenedor para indicadores clave de rendimiento (KPIs) */
+.kpi-container {
+    display: flex;
+    flex-direction: column; /* En móvil, columna única */
+    gap: 10px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #ffffff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilo para cada indicador individual */
+.kpi {
+    background-color: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    font-weight: bold;
+    text-align: center;
+    font-size: 1.2em;
+}
+
+.kpi span {
+    color: #4CAF50; /* Verde para resaltar valores positivos */
+    font-size: 1.2em;
+}
+
+/* Wrapper para manejar tablas responsivas con scroll horizontal */
+.table-wrapper {
+    overflow-x: auto; /* Permite scroll horizontal en tablas grandes */
+}
+
+/* Contenedor para tablas de datos */
+.data-table {
+    flex: 1;
+    overflow-y: auto; /* Scroll vertical si hay muchos datos */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background-color: #ffffff;
+    padding: 10px;
+}
+
+.data-table table {
+    width: 100%;
+    border-collapse: collapse; /* Elimina espacios entre celdas */
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.data-table th, .data-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.data-table thead {
+    background-color: #f8f9fa; /* Encabezado ligeramente destacado */
+}
+
+.data-table tr:hover {
+    background-color: #f1f1f1; /* Efecto al pasar sobre filas */
+}
+
+/* Media queries para responsive design - Adapta el diseño según tamaño de pantalla */
+/* Para tablets - Pantallas de 768px o más */
+@media screen and (min-width: 768px) {
+    .dashboard {
+        flex-direction: row; /* Cambia a disposición horizontal */
+    }
+
+    .search-box {
+        flex-direction: row; /* Elementos de búsqueda en horizontal */
+        align-items: center;
+    }
+    
+    .search-box button {
+        width: auto;
+    }
+    
+    .kpi-container {
+        flex-direction: row; /* KPIs en fila en lugar de columna */
+    }
+    
+    .kpi {
+        flex: 1; /* Distribuye espacio equitativamente */
+    }
+    
+    .charts-section {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* 2 gráficos por fila */
+    }
+    
+    #line-chart {
+        grid-column: span 2; /* Gráfico de línea ocupa toda la fila */
+    }
+}
+
+/* Para escritorio - Pantallas de 1024px o más */
+@media screen and (min-width: 1024px) {
+    .dashboard {
+        flex-direction: row;
+    }
+    
+    .map-container {
+        width: 50%; /* Mitad de la pantalla para el mapa */
+        height: calc(100vh - 30px); /* Altura casi completa de la ventana */
+    }
+    
+    #mapid {
+        height: 100%; /* Mapa ocupa todo el alto disponible */
+        flex-grow: 1;
+    }
+    
+    .analysis-container {
+        width: 50%; /* Mitad de la pantalla para análisis */
+        max-height: calc(100vh - 30px);
+        overflow-y: auto; /* Permite scroll si el contenido es extenso */
+    }
+    
+    .charts-section {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Para pantallas grandes - 1440px o más */
+@media screen and (min-width: 1440px) {
+    .charts-section {
+        grid-template-columns: repeat(3, 1fr); /* 3 gráficos por fila */
+    }
+    
+    #line-chart {
+        grid-column: auto; /* Ya no ocupa toda la fila */
+    }
+}
+
+/* Oculta las instrucciones de ruta generadas por Leaflet */
 .leaflet-routing-container {
-    display: none !important;
+    display: none !important; /* Oculta completamente el contenedor de rutas */
 }

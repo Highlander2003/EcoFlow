@@ -1,11 +1,15 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // === INICIALIZACIÓN DEL MAPA ===
     // Inicializar el mapa con una vista predeterminada (se actualizará si hay geolocalización)
     var map = L.map('mapid').setView([3.4516, -76.5320], 13);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
+    // Configuración de la capa base del mapa usando HERE Maps
+    L.tileLayer('https://{s}.tile.hereapi.com/v3/base/omv/normal.day/{z}/{x}/{y}.png?apikey={your_api_key}', {
+        attribution: '© HERE 2023',
+        maxZoom: 20
     }).addTo(map);
 
+    // === GEOLOCALIZACIÓN DEL USUARIO ===
     // Función para manejar la obtención exitosa de la ubicación
     function onLocationFound(position) {
         var lat = position.coords.latitude;
@@ -41,19 +45,21 @@ document.addEventListener('DOMContentLoaded', function() {
             onLocationFound,
             onLocationError,
             {
-                enableHighAccuracy: true,
-                timeout: 5000,
-                maximumAge: 0
+                enableHighAccuracy: true, // Mayor precisión
+                timeout: 5000,            // Tiempo límite de espera (5 segundos)
+                maximumAge: 0             // No usar datos de caché
             }
         );
     }
 
-    // Initialize charts
+    // === INICIALIZACIÓN DE GRÁFICOS ===
+    // Obtener contextos de los canvas para los gráficos
     var barCtx = document.getElementById('bar-chart-canvas').getContext('2d');
     var lineCtx = document.getElementById('line-chart-canvas').getContext('2d');
     var pieCtx = document.getElementById('line-chart-canvas').getContext('2d');
     var vehiclePieCtx = document.getElementById('pie-chart-canvas').getContext('2d');
 
+    // Gráfico de barras para mostrar volumen de tráfico por hora
     var barChart = new Chart(barCtx, {
         type: 'bar',
         data: {
@@ -76,8 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-
-
+    // Gráfico circular para mostrar distribución de tipos de vehículos
     var vehiclePieChart = new Chart(vehiclePieCtx, {
         type: 'pie',
         data: {
@@ -103,17 +108,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // === SISTEMA DE AUTOCOMPLETADO PARA BÚSQUEDA DE LUGARES ===
     // Referencias a elementos de entrada y sugerencias
     const puntoAInput = document.getElementById('punto-a');
     const puntoBInput = document.getElementById('punto-b');
     const sugerenciasADiv = document.getElementById('sugerencias-a');
     const sugerenciasBDiv = document.getElementById('sugerencias-b');
 
-    // Variable para controlar el tiempo entre peticiones
+    // Variable para controlar el tiempo entre peticiones (debounce)
     let timeoutId;
 
-    // Función para obtener sugerencias de lugares
+    // Función para obtener sugerencias de lugares desde Nominatim (OpenStreetMap)
     function obtenerSugerencias(texto, sugerenciasDiv, inputElement) {
+        // No buscar si hay menos de 3 caracteres
         if (texto.length < 3) {
             sugerenciasDiv.style.display = 'none';
             return;
@@ -193,12 +200,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // === FUNCIONALIDAD DE BÚSQUEDA DE RUTAS ===
     // Modificar el evento del botón buscar ruta para usar las coordenadas almacenadas
     const buscarRutaBtn = document.getElementById('buscar-ruta');
     buscarRutaBtn.addEventListener('click', function() {
         const origenNombre = puntoAInput.value.trim();
         const destinoNombre = puntoBInput.value.trim();
         
+        // Validar que ambos campos estén completos
         if (!origenNombre || !destinoNombre) {
             alert('Por favor, ingresa tanto el origen como el destino');
             return;
@@ -239,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 
-                // Continúa con la creación de la ruta como antes...
+                // Crear puntos de origen y destino para la ruta
                 const puntoA = L.latLng(origen.lat, origen.lng);
                 const puntoB = L.latLng(destino.lat, destino.lng);
                 
@@ -252,7 +261,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (window.marcadorA) map.removeLayer(window.marcadorA);
                 if (window.marcadorB) map.removeLayer(window.marcadorB);
                 
-                // Crear nueva ruta
+                // Crear marcadores para origen y destino
                 window.marcadorA = L.marker(puntoA, {draggable: true})
                     .addTo(map)
                     .bindPopup(origen.displayName);
@@ -261,23 +270,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     .addTo(map)
                     .bindPopup(destino.displayName);
                 
+                // Configurar el control de rutas
                 window.rutaControl = L.Routing.control({
                     waypoints: [puntoA, puntoB],
-                    routeWhileDragging: true,
-                    showAlternatives: true,
+                    routeWhileDragging: true,        // Recalcular ruta al arrastrar marcadores
+                    showAlternatives: true,          // Mostrar rutas alternativas
                     lineOptions: {
                         styles: [{color: '#007bff', opacity: 0.7, weight: 6}]
                     },
                     altLineOptions: {
                         styles: [{color: '#6c757d', opacity: 0.6, weight: 4}]
                     },
-                    show: false,           // Oculta completamente el panel de indicaciones
-                    collapsible: true,     // Permite que el panel sea colapsable (por si lo necesitas en el futuro)
-                    fitSelectedRoutes: true,
+                    show: false,                     // Oculta completamente el panel de indicaciones
+                    collapsible: true,               // Permite que el panel sea colapsable
+                    fitSelectedRoutes: true,         // Ajustar la vista a la ruta seleccionada
                     createMarker: function() { return null; } // Evita la creación de marcadores adicionales
                 }).addTo(map);
 
-                // Si aún aparece el panel de indicaciones, puedes ocultarlo manualmente después de crearlo
+                // Si aún aparece el panel de indicaciones, ocultarlo manualmente
                 if (document.querySelector('.leaflet-routing-container')) {
                     document.querySelector('.leaflet-routing-container').style.display = 'none';
                 }
@@ -286,6 +296,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const bounds = L.latLngBounds(puntoA, puntoB);
                 map.fitBounds(bounds, { padding: [50, 50] });
                 
+                // Restaurar estado del botón
                 resetButton();
                 
                 // Actualizar el gráfico de línea con información de la ruta
@@ -293,68 +304,72 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
         
+        // Función para restaurar el estado del botón
         function resetButton() {
             buscarRutaBtn.textContent = 'Buscar ruta';
             buscarRutaBtn.disabled = false;
         }
     });
 
+    // === ACTUALIZACIÓN DE GRÁFICOS BASADOS EN LA RUTA ===
     // Función para actualizar el gráfico de línea con datos de la ruta
     function actualizarGraficoConRuta(origenNombre, destinoNombre) {
         const lineCtx = document.getElementById('line-chart-canvas').getContext('2d');
         
-        // Generar datos de ejemplo para la ruta (esto podrías reemplazarlo con datos reales)
+        // Generar datos de ejemplo para la ruta (esto podría reemplazarse con datos reales)
         const distancias = [0, 2, 5, 8, 12, 15];
         const tiempos = [0, 5, 10, 15, 20, 25];
         
-        // Actualizar o crear el gráfico
+        // Destruir gráfico anterior si existe
         if (window.lineChart) {
             window.lineChart.destroy();
         }
         
+        // Crear nuevo gráfico con datos de la ruta
+        // Crear una nueva instancia del gráfico de línea y asignarla a una variable global
         window.lineChart = new Chart(lineCtx, {
-            type: 'line',
+            type: 'line',  // Tipo de gráfico: línea para mostrar progresión del tiempo
             data: {
-                labels: distancias.map(d => `${d} km`),
-                datasets: [{
-                    label: `Tiempo de viaje: ${origenNombre} → ${destinoNombre}`,
-                    data: tiempos,
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 2,
-                    tension: 0.3
-                }]
+            labels: distancias.map(d => `${d} km`),  // Convertir valores de distancia a etiquetas con formato "X km"
+            datasets: [{
+                label: `Tiempo de viaje: ${origenNombre} → ${destinoNombre}`,  // Etiqueta descriptiva con origen y destino
+                data: tiempos,  // Array con los tiempos estimados en minutos
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',  // Color de fondo con transparencia
+                borderColor: 'rgba(75, 192, 192, 1)',  // Color del borde de la línea
+                borderWidth: 2,  // Grosor de la línea en píxeles
+                tension: 0.3  // Suavizado de la curva (0=sin suavizado, 1=máximo suavizado)
+            }]
             },
             options: {
-                responsive: true,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Análisis de tiempo de viaje'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return `Tiempo: ${context.raw} min`;
-                            }
-                        }
-                    }
+            responsive: true,  // El gráfico se adaptará al tamaño del contenedor
+            plugins: {
+                title: {
+                display: true,
+                text: 'Análisis de tiempo de viaje'  // Título principal del gráfico
                 },
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Distancia (km)'
-                        }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Tiempo (minutos)'
-                        }
+                tooltip: {
+                callbacks: {
+                    label: function(context) {
+                    return `Tiempo: ${context.raw} min`;  // Personalización del tooltip al pasar el mouse
                     }
                 }
+                }
+            },
+            scales: {
+                x: {
+                title: {
+                    display: true,
+                    text: 'Distancia (km)'  // Título para el eje X
+                }
+                },
+                y: {
+                beginAtZero: true,  // Forzar que el eje Y comience en cero
+                title: {
+                    display: true,
+                    text: 'Tiempo (minutos)'  // Título para el eje Y
+                }
+                }
+            }
             }
         });
     }
