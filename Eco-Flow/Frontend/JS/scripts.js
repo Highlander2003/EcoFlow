@@ -1,377 +1,412 @@
+// Añadir al principio para depuración
+console.log("Cargando scripts.js");
+
 document.addEventListener('DOMContentLoaded', function() {
-    // === INICIALIZACIÓN DEL MAPA ===
-    // Inicializar el mapa con una vista predeterminada (se actualizará si hay geolocalización)
-    var map = L.map('mapid').setView([3.4516, -76.5320], 13);
+    console.log("DOM cargado completamente");
+    
+    // Inicializar mapa si está en la página principal
+    if (document.getElementById('map')) {
+        console.log("Elemento mapa encontrado, inicializando...");
+        initMap();
+    } else {
+        console.error("No se encontró el elemento #map");
+    }
+    
+    // Configurar búsqueda y rutas si estamos en la página principal
+    if (document.getElementById('search-input')) {
+        setupRouteControls();
+    }
+    
+    // Configurar opciones de transporte
+    setupTransportOptions();
+    
+    // Configurar botón de ubicación actual
+    setupLocationButton();
+});
 
-    // Configuración de la capa base del mapa usando HERE Maps
-    L.tileLayer('https://{s}.tile.hereapi.com/v3/base/omv/normal.day/{z}/{x}/{y}.png?apikey={your_api_key}', {
-        attribution: '© HERE 2023',
-        maxZoom: 20
-    }).addTo(map);
-
-    // === GEOLOCALIZACIÓN DEL USUARIO ===
-    // Función para manejar la obtención exitosa de la ubicación
-    function onLocationFound(position) {
-        var lat = position.coords.latitude;
-        var lng = position.coords.longitude;
+// Inicializa el mapa de Leaflet
+function initMap() {
+    console.log("Inicializando mapa...");
+    try {
+        // Centrar en una ubicación predeterminada en Bogotá
+        const defaultLocation = [4.6097, -74.0817]; // Bogotá
         
-        // Centrar el mapa en la ubicación actual
-        map.setView([lat, lng], 15);
+        // Crear mapa
+        map = L.map('map').setView(defaultLocation, 13);
         
-        // Opcional: Añadir un pequeño indicador de "estás aquí"
-        var locationMarker = L.circle([lat, lng], {
-            color: '#4285F4',
-            fillColor: '#4285F4',
-            fillOpacity: 0.2,
-            radius: 100  // Radio en metros
+        // Añadir capa de OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
         }).addTo(map);
         
-        // Mostrar un mensaje al usuario
-        L.popup()
-            .setLatLng([lat, lng])
-            .setContent('Estás aquí')
-            .openOn(map);
+        console.log("Mapa inicializado correctamente");
+        
+        // Añadir un marcador para comprobar que el mapa funciona
+        L.marker(defaultLocation).addTo(map)
+            .bindPopup('Bogotá, Colombia')
+            .openPopup();
+    } catch (error) {
+        console.error("Error al inicializar el mapa:", error);
     }
+}
 
-    // Función para manejar errores de geolocalización
-    function onLocationError(e) {
-        console.warn('Error de geolocalización:', e.message);
-        // Mantener la vista predeterminada si falla la geolocalización
-    }
-
-    // Intentar obtener la ubicación del usuario
-    if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-            onLocationFound,
-            onLocationError,
-            {
-                enableHighAccuracy: true, // Mayor precisión
-                timeout: 5000,            // Tiempo límite de espera (5 segundos)
-                maximumAge: 0             // No usar datos de caché
-            }
-        );
-    }
-
-    // === INICIALIZACIÓN DE GRÁFICOS ===
-    // Obtener contextos de los canvas para los gráficos
-    var barCtx = document.getElementById('bar-chart-canvas').getContext('2d');
-    var lineCtx = document.getElementById('line-chart-canvas').getContext('2d');
-    var pieCtx = document.getElementById('line-chart-canvas').getContext('2d');
-    var vehiclePieCtx = document.getElementById('pie-chart-canvas').getContext('2d');
-
-    // Gráfico de barras para mostrar volumen de tráfico por hora
-    var barChart = new Chart(barCtx, {
-        type: 'bar',
-        data: {
-            labels: ['8 AM', '9 AM', '10 AM', '11 AM', '12 PM', '1 PM', '2 PM'],
-            datasets: [{
-                label: 'Volumen de Trafico',
-                data: [120, 150, 180, 200, 170, 160, 140],
-                backgroundColor: 'rgba(75, 135, 192, 0.2)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
+// Configura controles de ruta y búsqueda
+function setupRouteControls() {
+    const searchInput = document.getElementById('search-input');
+    const searchButton = document.getElementById('search-button');
+    const optimizeButton = document.getElementById('optimize-route');
+    
+    // Manejar clic en botón de búsqueda
+    searchButton.addEventListener('click', () => {
+        const query = searchInput.value.trim();
+        if (query) {
+            searchPlaces(query).then(displaySearchResults);
+        }
+    });
+    
+    // Manejar presionar Enter en la búsqueda
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            const query = searchInput.value.trim();
+            if (query) {
+                searchPlaces(query).then(displaySearchResults);
             }
         }
     });
-
-    // Gráfico circular para mostrar distribución de tipos de vehículos
-    var vehiclePieChart = new Chart(vehiclePieCtx, {
-        type: 'pie',
-        data: {
-            labels: ['Autos', 'Motos', 'Buses'],
-            datasets: [{
-                label: 'Distribucion Vehicular',
-                data: [60, 25, 15],
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(54, 162, 235, 0.2)',
-                    'rgba(255, 206, 86, 0.2)'
-                ],
-                borderColor: [
-                    'rgba(255, 99, 132, 1)',
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 206, 86, 1)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: false
-        }
-    });
-
-    // === SISTEMA DE AUTOCOMPLETADO PARA BÚSQUEDA DE LUGARES ===
-    // Referencias a elementos de entrada y sugerencias
-    const puntoAInput = document.getElementById('punto-a');
-    const puntoBInput = document.getElementById('punto-b');
-    const sugerenciasADiv = document.getElementById('sugerencias-a');
-    const sugerenciasBDiv = document.getElementById('sugerencias-b');
-
-    // Variable para controlar el tiempo entre peticiones (debounce)
-    let timeoutId;
-
-    // Función para obtener sugerencias de lugares desde Nominatim (OpenStreetMap)
-    function obtenerSugerencias(texto, sugerenciasDiv, inputElement) {
-        // No buscar si hay menos de 3 caracteres
-        if (texto.length < 3) {
-            sugerenciasDiv.style.display = 'none';
-            return;
-        }
-
-        // Cancelar cualquier petición previa pendiente
-        clearTimeout(timeoutId);
-
-        // Esperar 300ms después de que el usuario deje de escribir para hacer la petición
-        timeoutId = setTimeout(() => {
-            const apiUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(texto)}&limit=5`;
-            
-            fetch(apiUrl)
-                .then(response => response.json())
-                .then(data => {
-                    // Limpiar sugerencias previas
-                    sugerenciasDiv.innerHTML = '';
-                    
-                    if (data.length === 0) {
-                        sugerenciasDiv.style.display = 'none';
-                        return;
-                    }
-
-                    // Mostrar cada sugerencia
-                    data.forEach(lugar => {
-                        const sugerenciaItem = document.createElement('div');
-                        sugerenciaItem.className = 'sugerencia-item';
-
-                        // Extraer nombre principal y dirección secundaria
-                        const nombrePrincipal = lugar.display_name.split(',')[0];
-                        const direccionSecundaria = lugar.display_name.substring(nombrePrincipal.length + 1);
-
-                        sugerenciaItem.innerHTML = `
-                            <div class="sugerencia-principal">${nombrePrincipal}</div>
-                            <div class="sugerencia-secundaria">${direccionSecundaria}</div>
-                        `;
-
-                        // Al hacer clic, llenar el campo de entrada con esta sugerencia
-                        sugerenciaItem.addEventListener('click', () => {
-                            inputElement.value = lugar.display_name;
-                            sugerenciasDiv.style.display = 'none';
-                            
-                            // Guardar las coordenadas como datos personalizados en el input
-                            inputElement.dataset.lat = lugar.lat;
-                            inputElement.dataset.lng = lugar.lon;
-                        });
-
-                        sugerenciasDiv.appendChild(sugerenciaItem);
-                    });
-
-                    // Mostrar el panel de sugerencias
-                    sugerenciasDiv.style.display = 'block';
-                })
-                .catch(error => {
-                    console.error('Error al obtener sugerencias:', error);
-                    sugerenciasDiv.style.display = 'none';
-                });
-        }, 300);
+    
+    // Manejar clic en botón de optimizar
+    if (optimizeButton) {
+        optimizeButton.addEventListener('click', optimizeAndDisplayRoute);
     }
+}
 
-    // Escuchar eventos de entrada en los campos
-    puntoAInput.addEventListener('input', () => {
-        obtenerSugerencias(puntoAInput.value, sugerenciasADiv, puntoAInput);
-    });
-
-    puntoBInput.addEventListener('input', () => {
-        obtenerSugerencias(puntoBInput.value, sugerenciasBDiv, puntoBInput);
-    });
-
-    // Cerrar las sugerencias cuando se hace clic fuera de ellas
-    document.addEventListener('click', (e) => {
-        if (!puntoAInput.contains(e.target) && !sugerenciasADiv.contains(e.target)) {
-            sugerenciasADiv.style.display = 'none';
-        }
-        if (!puntoBInput.contains(e.target) && !sugerenciasBDiv.contains(e.target)) {
-            sugerenciasBDiv.style.display = 'none';
-        }
-    });
-
-    // === FUNCIONALIDAD DE BÚSQUEDA DE RUTAS ===
-    // Modificar el evento del botón buscar ruta para usar las coordenadas almacenadas
-    const buscarRutaBtn = document.getElementById('buscar-ruta');
-    buscarRutaBtn.addEventListener('click', function() {
-        const origenNombre = puntoAInput.value.trim();
-        const destinoNombre = puntoBInput.value.trim();
-        
-        // Validar que ambos campos estén completos
-        if (!origenNombre || !destinoNombre) {
-            alert('Por favor, ingresa tanto el origen como el destino');
-            return;
-        }
-        
-        // Mostrar indicador de carga
-        buscarRutaBtn.textContent = 'Buscando...';
-        buscarRutaBtn.disabled = true;
-        
-        // Función para buscar ubicación si no hay coordenadas guardadas
-        function geocodificarSiNecesario(inputElement, nombreLugar, callback) {
-            if (inputElement.dataset.lat && inputElement.dataset.lng) {
-                // Usar coordenadas guardadas de la sugerencia seleccionada
-                callback(null, {
-                    lat: parseFloat(inputElement.dataset.lat),
-                    lng: parseFloat(inputElement.dataset.lng),
-                    displayName: nombreLugar
-                });
-            } else {
-                // Realizar geocodificación si no hay coordenadas guardadas
-                geocodeLocation(nombreLugar, callback);
-            }
-        }
-        
-        // Geocodificar origen (o usar coordenadas guardadas)
-        geocodificarSiNecesario(puntoAInput, origenNombre, (errorOrigen, origen) => {
-            if (errorOrigen) {
-                alert(`Error al buscar el origen: ${errorOrigen}`);
-                resetButton();
-                return;
-            }
-            
-            // Geocodificar destino (o usar coordenadas guardadas)
-            geocodificarSiNecesario(puntoBInput, destinoNombre, (errorDestino, destino) => {
-                if (errorDestino) {
-                    alert(`Error al buscar el destino: ${errorDestino}`);
-                    resetButton();
-                    return;
+// Configura las opciones de transporte
+function setupTransportOptions() {
+    const transportOptions = document.querySelectorAll('.transport-option');
+    
+    if (transportOptions.length > 0) {
+        transportOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                // Actualizar selección visual
+                transportOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                
+                // Actualizar tipo de vehículo seleccionado
+                selectedVehicleType = option.getAttribute('data-type');
+                
+                // Recalcular ruta con el nuevo tipo de vehículo
+                if (routeWaypoints.length >= 2) {
+                    calculateAndDisplayRoute();
                 }
-                
-                // Crear puntos de origen y destino para la ruta
-                const puntoA = L.latLng(origen.lat, origen.lng);
-                const puntoB = L.latLng(destino.lat, destino.lng);
-                
-                // Eliminar ruta anterior si existe
-                if (window.rutaControl) {
-                    map.removeControl(window.rutaControl);
-                }
-                
-                // Eliminar marcadores anteriores si existen
-                if (window.marcadorA) map.removeLayer(window.marcadorA);
-                if (window.marcadorB) map.removeLayer(window.marcadorB);
-                
-                // Crear marcadores para origen y destino
-                window.marcadorA = L.marker(puntoA, {draggable: true})
-                    .addTo(map)
-                    .bindPopup(origen.displayName);
-                    
-                window.marcadorB = L.marker(puntoB, {draggable: true})
-                    .addTo(map)
-                    .bindPopup(destino.displayName);
-                
-                // Configurar el control de rutas
-                window.rutaControl = L.Routing.control({
-                    waypoints: [puntoA, puntoB],
-                    routeWhileDragging: true,        // Recalcular ruta al arrastrar marcadores
-                    showAlternatives: true,          // Mostrar rutas alternativas
-                    lineOptions: {
-                        styles: [{color: '#007bff', opacity: 0.7, weight: 6}]
-                    },
-                    altLineOptions: {
-                        styles: [{color: '#6c757d', opacity: 0.6, weight: 4}]
-                    },
-                    show: false,                     // Oculta completamente el panel de indicaciones
-                    collapsible: true,               // Permite que el panel sea colapsable
-                    fitSelectedRoutes: true,         // Ajustar la vista a la ruta seleccionada
-                    createMarker: function() { return null; } // Evita la creación de marcadores adicionales
-                }).addTo(map);
-
-                // Si aún aparece el panel de indicaciones, ocultarlo manualmente
-                if (document.querySelector('.leaflet-routing-container')) {
-                    document.querySelector('.leaflet-routing-container').style.display = 'none';
-                }
-                
-                // Ajustar la vista del mapa para mostrar toda la ruta
-                const bounds = L.latLngBounds(puntoA, puntoB);
-                map.fitBounds(bounds, { padding: [50, 50] });
-                
-                // Restaurar estado del botón
-                resetButton();
-                
-                // Actualizar el gráfico de línea con información de la ruta
-                actualizarGraficoConRuta(origen.displayName, destino.displayName);
             });
         });
-        
-        // Función para restaurar el estado del botón
-        function resetButton() {
-            buscarRutaBtn.textContent = 'Buscar ruta';
-            buscarRutaBtn.disabled = false;
-        }
-    });
+    }
+}
 
-    // === ACTUALIZACIÓN DE GRÁFICOS BASADOS EN LA RUTA ===
-    // Función para actualizar el gráfico de línea con datos de la ruta
-    function actualizarGraficoConRuta(origenNombre, destinoNombre) {
-        const lineCtx = document.getElementById('line-chart-canvas').getContext('2d');
+// Función para mostrar resultados de búsqueda
+function displaySearchResults(places) {
+    const resultsContainer = document.getElementById('search-results');
+    resultsContainer.innerHTML = '';
+    
+    if (!places || places.length === 0) {
+        resultsContainer.innerHTML = '<p>No se encontraron resultados</p>';
+        return;
+    }
+    
+    const ul = document.createElement('ul');
+    ul.className = 'places-list';
+    
+    places.forEach(place => {
+        const li = document.createElement('li');
+        li.className = 'place-item';
+        li.innerHTML = `
+            <span class="place-name">${place.name}</span>
+            <button class="btn-add-waypoint">Añadir</button>
+        `;
         
-        // Generar datos de ejemplo para la ruta (esto podría reemplazarse con datos reales)
-        const distancias = [0, 2, 5, 8, 12, 15];
-        const tiempos = [0, 5, 10, 15, 20, 25];
+        li.querySelector('.btn-add-waypoint').addEventListener('click', () => {
+            addWaypoint(place);
+            resultsContainer.innerHTML = '';
+        });
         
-        // Destruir gráfico anterior si existe
-        if (window.lineChart) {
-            window.lineChart.destroy();
-        }
+        ul.appendChild(li);
+    });
+    
+    resultsContainer.appendChild(ul);
+}
+
+// Función para añadir un waypoint a la ruta
+function addWaypoint(place) {
+    routeWaypoints.push(place);
+    updateWaypointsList();
+    
+    // Añadir marcador al mapa
+    if (map) {
+        const marker = L.marker([place.lat, place.lon])
+            .addTo(map)
+            .bindPopup(place.name);
         
-        // Crear nuevo gráfico con datos de la ruta
-        // Crear una nueva instancia del gráfico de línea y asignarla a una variable global
-        window.lineChart = new Chart(lineCtx, {
-            type: 'line',  // Tipo de gráfico: línea para mostrar progresión del tiempo
-            data: {
-            labels: distancias.map(d => `${d} km`),  // Convertir valores de distancia a etiquetas con formato "X km"
-            datasets: [{
-                label: `Tiempo de viaje: ${origenNombre} → ${destinoNombre}`,  // Etiqueta descriptiva con origen y destino
-                data: tiempos,  // Array con los tiempos estimados en minutos
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',  // Color de fondo con transparencia
-                borderColor: 'rgba(75, 192, 192, 1)',  // Color del borde de la línea
-                borderWidth: 2,  // Grosor de la línea en píxeles
-                tension: 0.3  // Suavizado de la curva (0=sin suavizado, 1=máximo suavizado)
-            }]
-            },
-            options: {
-            responsive: true,  // El gráfico se adaptará al tamaño del contenedor
-            plugins: {
-                title: {
-                display: true,
-                text: 'Análisis de tiempo de viaje'  // Título principal del gráfico
-                },
-                tooltip: {
-                callbacks: {
-                    label: function(context) {
-                    return `Tiempo: ${context.raw} min`;  // Personalización del tooltip al pasar el mouse
-                    }
-                }
-                }
-            },
-            scales: {
-                x: {
-                title: {
-                    display: true,
-                    text: 'Distancia (km)'  // Título para el eje X
-                }
-                },
-                y: {
-                beginAtZero: true,  // Forzar que el eje Y comience en cero
-                title: {
-                    display: true,
-                    text: 'Tiempo (minutos)'  // Título para el eje Y
-                }
-                }
+        currentMarkers.push(marker);
+        
+        // Centrar mapa en el nuevo punto
+        map.setView([place.lat, place.lon], 13);
+    }
+    
+    // Si tenemos al menos dos puntos, calcular la ruta
+    if (routeWaypoints.length >= 2) {
+        calculateAndDisplayRoute();
+    }
+}
+
+// Función para actualizar la lista visual de waypoints
+function updateWaypointsList() {
+    const waypointsContainer = document.getElementById('waypoints-list');
+    if (!waypointsContainer) return;
+    
+    waypointsContainer.innerHTML = '';
+    
+    routeWaypoints.forEach((waypoint, index) => {
+        const waypointElement = document.createElement('div');
+        waypointElement.className = 'waypoint-item';
+        waypointElement.innerHTML = `
+            <span class="waypoint-number">${index + 1}</span>
+            <span class="waypoint-name">${waypoint.name}</span>
+            <button class="btn-remove-waypoint" data-index="${index}">🗑️</button>
+        `;
+        
+        waypointsContainer.appendChild(waypointElement);
+    });
+    
+    // Añadir event listeners para los botones de eliminar
+    document.querySelectorAll('.btn-remove-waypoint').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const index = parseInt(e.target.getAttribute('data-index'));
+            
+            // Eliminar el marcador del mapa
+            if (currentMarkers[index]) {
+                map.removeLayer(currentMarkers[index]);
+                currentMarkers.splice(index, 1);
             }
+            
+            // Eliminar el waypoint de la lista
+            routeWaypoints.splice(index, 1);
+            
+            updateWaypointsList();
+            
+            // Recalcular ruta si aún hay suficientes puntos
+            if (routeWaypoints.length >= 2) {
+                calculateAndDisplayRoute();
+            } else if (currentRouteLayer) {
+                // Eliminar ruta del mapa si no hay suficientes puntos
+                map.removeLayer(currentRouteLayer);
+                currentRouteLayer = null;
+                
+                // Limpiar estadísticas
+                const statsContainer = document.getElementById('route-stats');
+                if (statsContainer) statsContainer.innerHTML = '';
             }
         });
+    });
+}
+
+// Función para calcular y mostrar la ruta actual
+async function calculateAndDisplayRoute() {
+    if (routeWaypoints.length < 2) return;
+    
+    // Si solo hay dos puntos, calculamos ruta directa
+    if (routeWaypoints.length === 2) {
+        const route = await calculateRoute(
+            routeWaypoints[0], 
+            routeWaypoints[1], 
+            selectedVehicleType
+        );
+        
+        if (route) {
+            displayRoute(route);
+            updateRouteStats(route);
+            updateEmissionsChartData(route.emissions || 0, selectedVehicleType);
+        }
+    } else {
+        // Si hay más de dos puntos, usamos la última optimización o calculamos ruta directa
+        // entre primer y último punto como fallback
+        const route = await calculateRoute(
+            routeWaypoints[0], 
+            routeWaypoints[routeWaypoints.length - 1], 
+            selectedVehicleType
+        );
+        
+        if (route) {
+            displayRoute(route);
+            updateRouteStats(route);
+            updateEmissionsChartData(route.emissions || 0, selectedVehicleType);
+        }
     }
-});
+}
+
+// Función para optimizar y mostrar la ruta con múltiples paradas
+async function optimizeAndDisplayRoute() {
+    if (routeWaypoints.length < 3) return;
+    
+    const optimizedRoute = await optimizeRoute(routeWaypoints, selectedVehicleType);
+    if (optimizedRoute) {
+        displayRoute(optimizedRoute);
+        updateRouteStats(optimizedRoute);
+        updateEmissionsChartData(optimizedRoute.emissions || 0, selectedVehicleType);
+    }
+}
+
+// Función para mostrar la ruta en el mapa
+function displayRoute(route) {
+    // Limpiar rutas anteriores
+    if (currentRouteLayer) {
+        map.removeLayer(currentRouteLayer);
+    }
+    
+    // Crear array de coordenadas para la ruta
+    const routeCoordinates = route.path.map(point => [point.lat, point.lon]);
+    
+    // Crear línea de ruta
+    currentRouteLayer = L.polyline(routeCoordinates, {
+        color: '#0e7c7b',
+        weight: 6,
+        opacity: 0.7
+    }).addTo(map);
+    
+    // Ajustar el mapa para mostrar toda la ruta
+    if (routeCoordinates.length > 0) {
+        map.fitBounds(currentRouteLayer.getBounds(), {
+            padding: [50, 50]
+        });
+    }
+}
+
+// Función para actualizar las estadísticas de la ruta
+function updateRouteStats(route) {
+    const statsContainer = document.getElementById('route-stats');
+    if (!statsContainer) return;
+    
+    statsContainer.innerHTML = `
+        <div class="stat-item">
+            <span class="stat-label">Distancia:</span>
+            <span class="stat-value">${route.distance ? route.distance.toFixed(2) : route.total_distance.toFixed(2)} km</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Tiempo estimado:</span>
+            <span class="stat-value">${route.duration ? route.duration.toFixed(0) : route.estimated_time.toFixed(0)} min</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Emisiones de CO2:</span>
+            <span class="stat-value">${route.emissions ? route.emissions.toFixed(2) : '0.00'} kg</span>
+        </div>
+    `;
+}
+
+// Función para configurar el botón de ubicación actual
+function setupLocationButton() {
+    const locationButton = document.getElementById('use-current-location');
+    
+    if (!locationButton) return;
+    
+    // Verificar si el navegador soporta geolocalización
+    if (!navigator.geolocation) {
+        locationButton.disabled = true;
+        locationButton.innerHTML = 'Geolocalización no soportada';
+        return;
+    }
+    
+    locationButton.addEventListener('click', getUserLocation);
+}
+
+// Función para obtener la ubicación del usuario
+function getUserLocation() {
+    const locationButton = document.getElementById('use-current-location');
+    
+    // Cambiar estado del botón
+    locationButton.disabled = true;
+    locationButton.innerHTML = '<span class="location-icon">⏳</span> Obteniendo ubicación...';
+    
+    // Opciones para la geolocalización
+    const options = {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+    };
+    
+    // Solicitar ubicación
+    navigator.geolocation.getCurrentPosition(
+        handleLocationSuccess,
+        handleLocationError,
+        options
+    );
+}
+
+// Función para manejar éxito en la geolocalización
+function handleLocationSuccess(position) {
+    const locationButton = document.getElementById('use-current-location');
+    locationButton.disabled = false;
+    locationButton.innerHTML = '<span class="location-icon">📍</span> Usar mi ubicación';
+    
+    // Obtener coordenadas
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
+    
+    // Crear un objeto de ubicación
+    const currentLocation = {
+        name: "Mi ubicación actual",
+        lat: lat,
+        lon: lon,
+        type: "current_location"
+    };
+    
+    // Añadir como waypoint y centrar mapa
+    addWaypoint(currentLocation);
+    
+    // Centrar mapa en la ubicación
+    if (map) {
+        map.setView([lat, lon], 15);
+    }
+}
+
+// Función para manejar error en la geolocalización
+function handleLocationError(error) {
+    const locationButton = document.getElementById('use-current-location');
+    locationButton.disabled = false;
+    locationButton.innerHTML = '<span class="location-icon">📍</span> Usar mi ubicación';
+    
+    let errorMessage = '';
+    switch(error.code) {
+        case error.PERMISSION_DENIED:
+            errorMessage = 'Permiso de ubicación denegado.';
+            break;
+        case error.POSITION_UNAVAILABLE:
+            errorMessage = 'Información de ubicación no disponible.';
+            break;
+        case error.TIMEOUT:
+            errorMessage = 'Tiempo de espera agotado para obtener ubicación.';
+            break;
+        case error.UNKNOWN_ERROR:
+            errorMessage = 'Error desconocido al obtener ubicación.';
+            break;
+    }
+    
+    // Mostrar mensaje de error
+    const locationContainer = document.querySelector('.location-container');
+    const errorElement = document.createElement('div');
+    errorElement.className = 'location-error';
+    errorElement.textContent = errorMessage;
+    
+    // Eliminar mensajes de error previos
+    const prevError = locationContainer.querySelector('.location-error');
+    if (prevError) prevError.remove();
+    
+    locationContainer.appendChild(errorElement);
+    
+    // Eliminar mensaje después de 5 segundos
+    setTimeout(() => {
+        if (errorElement.parentNode) {
+            errorElement.remove();
+        }
+    }, 5000);
+}
 

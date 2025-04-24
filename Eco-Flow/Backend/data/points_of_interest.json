@@ -1,0 +1,92 @@
+[
+  {
+    "name": "Plaza de Bolívar",
+    "lat": 4.5981,
+    "lon": -74.0758,
+    "type": "landmark"
+  },
+  {
+    "name": "Parque Simón Bolívar",
+    "lat": 4.6582,
+    "lon": -74.0942,
+    "type": "park"
+  },
+  {
+    "name": "Museo del Oro",
+    "lat": 4.6018,
+    "lon": -74.0705,
+    "type": "museum"
+  },
+  {
+    "name": "Biblioteca Luis Ángel Arango",
+    "lat": 4.5985,
+    "lon": -74.0742,
+    "type": "library"
+  },
+  {
+    "name": "Monserrate",
+    "lat": 4.6057,
+    "lon": -74.0565,
+    "type": "landmark"
+  },
+  {
+    "name": "Torre Colpatria",
+    "lat": 4.6126,
+    "lon": -74.0691,
+    "type": "landmark"
+  },
+  {
+    "name": "La Candelaria",
+    "lat": 4.5964,
+    "lon": -74.0741,
+    "type": "neighborhood"
+  },
+  {
+    "name": "Universidad Nacional",
+    "lat": 4.6365,
+    "lon": -74.0847,
+    "type": "university"
+  },
+  {
+    "name": "Jardín Botánico",
+    "lat": 4.6669,
+    "lon": -74.0994,
+    "type": "park"
+  },
+  {
+    "name": "Catedral Primada",
+    "lat": 4.5986,
+    "lon": -74.0758,
+    "type": "religious"
+  },
+  {
+    "name": "Estadio El Campín",
+    "lat": 4.6470,
+    "lon": -74.0779,
+    "type": "stadium"
+  },
+  {
+    "name": "Parque de la 93",
+    "lat": 4.6769,
+    "lon": -74.0480,
+    "type": "park"
+  },
+  {
+    "name": "Avenida Carrera Séptima",
+    "lat": 4.6097,
+    "lon": -74.0682,
+    "type": "avenue"
+  },
+  {
+    "name": "Zona T",
+    "lat": 4.6679,
+    "lon": -74.0548,
+    "type": "neighborhood"
+  },
+  {
+    "name": "Centro Andino",
+    "lat": 4.6672,
+    "lon": -74.0535,
+    "type": "shopping"
+  }
+]

@@ -1,293 +1,557 @@
-/* Estilos base responsive - Define configuración básica para todos los elementos */
+/* Variables generales */
+:root {
+    --primary-color: #4CAF50;
+    --primary-dark: #388E3C;
+    --primary-light: #C8E6C9;
+    --secondary-color: #2196F3;
+    --accent-color: #FF9800;
+    --text-color: #333;
+    --light-text: #757575;
+    --background-color: #f5f5f5;
+    --card-color: #fff;
+    --border-color: #e0e0e0;
+    --shadow: 0 2px 10px rgba(0,0,0,0.1);
+    --header-height: 70px;
+    --footer-height: 60px;
+}
+
+/* Estilos generales */
 * {
-    box-sizing: border-box; /* Incluye padding y borde en el ancho/alto total */
-    margin: 0; /* Elimina márgenes predeterminados */
-    padding: 0; /* Elimina rellenos predeterminados */
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 body {
-    font-family: Arial, sans-serif; /* Tipografía principal */
-    line-height: 1.6; /* Espaciado entre líneas para mejor legibilidad */
-    background-color: #f4f4f4; /* Color de fondo suave para toda la página */
+    font-family: 'Montserrat', sans-serif;
+    color: #333;
+    line-height: 1.6;
+    background-color: #f8f9fa;
 }
 
-/* Estilos para el dashboard principal - Contenedor general de la aplicación */
-.dashboard {
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+a {
+    text-decoration: none;
+    color: #0e7c7b;
+}
+
+/* Header */
+.header {
+    background-color: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     display: flex;
-    flex-direction: column; /* Elementos apilados verticalmente en móviles */
-    width: 100%;
-    max-width: 1800px; /* Limita el ancho máximo en pantallas grandes */
-    margin: 0 auto; /* Centra el dashboard */
-    padding: 15px;
-    gap: 20px; /* Espacio entre elementos hijos */
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 5%;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
-/* Estilos para el contenedor del mapa - Sección donde se muestra el mapa */
-.map-container {
-    width: 100%;
-    border-radius: 10px; /* Esquinas redondeadas */
-    overflow: hidden; /* Previene que el mapa sobresalga de las esquinas redondeadas */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra sutil para elevación visual */
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    height: 40px;
+    margin-right: 10px;
+}
+
+.logo-small {
+    height: 30px;
+}
+
+.main-nav ul {
+    display: flex;
+    list-style: none;
+}
+
+.main-nav li {
+    margin-left: 25px;
+}
+
+.main-nav a {
+    color: #555;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.main-nav a:hover, .main-nav a.active {
+    color: #0e7c7b;
+}
+
+/* Hero section */
+.hero {
+    background: linear-gradient(rgba(14, 124, 123, 0.8), rgba(14, 124, 123, 0.9)), url('../img/hero-bg.jpg') no-repeat center center;
+    background-size: cover;
+    color: white;
+    padding: 80px 5%;
+    text-align: center;
+}
+
+.hero h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+}
+
+.hero p {
+    font-size: 1.2rem;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+/* Main container */
+.main-container {
+    padding: 40px 5%;
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    grid-template-areas:
+        "route map"
+        "charts charts";
+    gap: 25px;
+}
+
+/* Route panel */
+.route-panel {
+    grid-area: route;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 20px;
     display: flex;
     flex-direction: column;
+    gap: 20px;
 }
 
-#mapid {
-    width: 100%;
-    height: 400px; /* Altura fija para móviles */
-}
-
-/* Estilos para los controles de búsqueda - Barra de búsqueda sobre el mapa */
-.search-controls {
-    position: absolute; /* Posicionamiento absoluto sobre el mapa */
-    top: 10px;
-    left: 20%;
-    right: 10px;
-    z-index: 1000; /* Asegura que esté por encima del mapa */
-    padding: 15px;
-    background-color: #f5f5f5;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+.search-container {
+    margin-bottom: 15px;
 }
 
 .search-box {
     display: flex;
-    flex-direction: column; /* Apilados en móvil, en fila en pantallas más grandes */
     gap: 10px;
+    margin-bottom: 10px;
 }
 
-/* Contenedor para los inputs de búsqueda */
-.input-container {
-    position: relative; /* Para posicionar las sugerencias correctamente */
-    width: 100%;
-}
-
-.input-container input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-
-/* Desplegable de sugerencias durante la búsqueda */
-.sugerencias {
-    position: absolute;
-    width: 100%;
-    background: white;
+#search-input {
+    flex: 1;
+    padding: 10px 12px;
     border: 1px solid #ddd;
-    border-top: none;
-    z-index: 1000;
-    max-height: 150px;
-    overflow-y: auto; /* Scroll vertical si hay muchas sugerencias */
-    display: none; /* Oculto por defecto, se muestra con JavaScript */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    font-size: 14px;
 }
 
-/* Elementos individuales en la lista de sugerencias */
-.sugerencia-item {
-    padding: 8px 10px;
-    cursor: pointer; /* Indica que es clickeable */
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.sugerencia-item:hover {
-    background-color: #f5f5f5; /* Efecto al pasar el cursor */
-}
-
-.sugerencia-item:last-child {
-    border-bottom: none; /* Elimina el borde del último elemento */
-}
-
-.sugerencia-principal {
-    font-weight: bold; /* Texto principal de la sugerencia */
-}
-
-.sugerencia-secundaria {
-    font-size: 0.8em; /* Texto informativo adicional más pequeño */
-    color: #666;
-}
-
-/* Botón para iniciar la búsqueda de ruta */
-button#buscar-ruta {
-    padding: 10px;
-    background-color: #4CAF50; /* Verde para acción positiva */
+#search-button {
+    background: #0e7c7b;
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 4px;
+    padding: 10px 15px;
     cursor: pointer;
-    font-weight: bold;
+    font-weight: 500;
+    transition: background 0.3s;
 }
 
-button#buscar-ruta:hover {
-    background-color: #45a049; /* Verde más oscuro al pasar el cursor */
+#search-button:hover {
+    background: #0a5e5d;
 }
 
-/* Estilos para el contenedor de análisis - Sección de gráficos y datos */
-.analysis-container {
+.places-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.place-item {
     display: flex;
-    flex-direction: column;
-    gap: 20px;
+    justify-content: space-between;
+    align-items: center;
     padding: 10px;
+    border-bottom: 1px solid #eee;
 }
 
-/* Sección donde se muestran los gráficos */
-.charts-section {
+.place-name {
+    flex: 1;
+    font-size: 14px;
+}
+
+.btn-add-waypoint {
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.btn-add-waypoint:hover {
+    background: #2980b9;
+}
+
+.waypoints-container {
+    margin-bottom: 15px;
+}
+
+.waypoint-item {
     display: flex;
-    flex-direction: column; /* En móvil, columna única */
-    gap: 20px;
+    align-items: center;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 4px;
+    margin-bottom: 8px;
 }
 
-/* Contenedor individual para cada gráfico */
-.chart {
-    background-color: white;
-    border-radius: 8px;
+.waypoint-number {
+    background: #0e7c7b;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    font-size: 12px;
+}
+
+.waypoint-name {
+    flex: 1;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.btn-remove-waypoint {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #e74c3c;
+    font-size: 16px;
+}
+
+.btn-optimize {
+    background: #f39c12;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 12px 15px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+    font-weight: 500;
+    transition: background 0.3s;
+}
+
+.btn-optimize:hover {
+    background: #e67e22;
+}
+
+.transport-selector {
+    margin-top: 20px;
+}
+
+.transport-options {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.transport-option {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #f9f9f9;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.transport-option.active {
+    background: #0e7c7b;
+    color: white;
+    border-color: #0e7c7b;
+}
+
+.route-stats-container {
+    background: #f9f9f9;
+    border-radius: 4px;
     padding: 15px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.stat-label {
+    font-weight: 500;
+}
+
+/* Map container */
+.map-container {
+    position: relative;
+    height: calc(100vh - 130px);
+    min-height: 500px;
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+#map {
+    height: 100%;
+    width: 100%;
+}
+
+/* Charts container */
+.charts-container {
+    grid-area: charts;
+    display: flex;
+    gap: 25px;
+    margin-top: 20px;
+}
+
+.chart-box {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 20px;
+    flex: 1;
+}
+
+.chart-box h3 {
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.chart-box canvas {
     height: 300px;
 }
 
-/* Sección para datos estadísticos y tablas */
-.data-section {
+/* About section */
+.about-section {
+    padding: 60px 5%;
+    background: #f0f7f7;
+    text-align: center;
+}
+
+.about-section h2 {
+    margin-bottom: 20px;
+}
+
+.about-section p {
+    max-width: 800px;
+    margin: 0 auto 40px;
+    font-size: 1.1rem;
+}
+
+.benefits {
     display: flex;
-    flex-direction: column;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.benefit-item {
+    background: white;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    flex: 1;
+    min-width: 250px;
+    max-width: 350px;
+}
+
+.benefit-item h3 {
+    color: #0e7c7b;
+}
+
+/* Footer */
+footer {
+    background: #333;
+    color: #fff;
+    padding: 40px 5%;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.footer-links {
+    display: flex;
     gap: 20px;
 }
 
-/* Contenedor para indicadores clave de rendimiento (KPIs) */
-.kpi-container {
+.footer-links a {
+    color: #ddd;
+    font-size: 14px;
+    transition: color 0.3s;
+}
+
+.footer-links a:hover {
+    color: #fff;
+}
+
+/* Dashboard específico */
+.dashboard-page main {
+    padding: 40px 5%;
+}
+
+.dashboard-header {
     display: flex;
-    flex-direction: column; /* En móvil, columna única */
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.date-filter {
+    display: flex;
+    align-items: center;
     gap: 10px;
-    margin-bottom: 15px;
-    padding: 10px;
-    background-color: #ffffff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Estilo para cada indicador individual */
-.kpi {
-    background-color: white;
-    padding: 15px;
+#date-range {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 25px;
+}
+
+.dashboard-card {
+    background: white;
     border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    font-weight: bold;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 20px;
+}
+
+.chart-container {
+    height: 300px;
+    position: relative;
+}
+
+.stats-card .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.stats-card .stat-item {
     text-align: center;
-    font-size: 1.2em;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 8px;
 }
 
-.kpi span {
-    color: #4CAF50; /* Verde para resaltar valores positivos */
-    font-size: 1.2em;
+.stats-card .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #0e7c7b;
 }
 
-/* Wrapper para manejar tablas responsivas con scroll horizontal */
-.table-wrapper {
-    overflow-x: auto; /* Permite scroll horizontal en tablas grandes */
+.stats-card .stat-label {
+    font-size: 0.9rem;
+    color: #666;
 }
 
-/* Contenedor para tablas de datos */
-.data-table {
-    flex: 1;
-    overflow-y: auto; /* Scroll vertical si hay muchos datos */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    background-color: #ffffff;
-    padding: 10px;
+.location-container {
+    margin: 10px 0 15px;
 }
 
-.data-table table {
+.btn-location {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background-color: #f0f7f7;
+    border: 1px solid #0e7c7b;
+    border-radius: 4px;
+    color: #0e7c7b;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s;
     width: 100%;
-    border-collapse: collapse; /* Elimina espacios entre celdas */
-    background-color: white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    justify-content: center;
 }
 
-.data-table th, .data-table td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
+.btn-location:hover {
+    background-color: #e0f0f0;
 }
 
-.data-table thead {
-    background-color: #f8f9fa; /* Encabezado ligeramente destacado */
+.location-icon {
+    font-size: 16px;
 }
 
-.data-table tr:hover {
-    background-color: #f1f1f1; /* Efecto al pasar sobre filas */
+.location-error {
+    color: #e74c3c;
+    margin-top: 8px;
+    font-size: 14px;
+    text-align: center;
 }
 
-/* Media queries para responsive design - Adapta el diseño según tamaño de pantalla */
-/* Para tablets - Pantallas de 768px o más */
-@media screen and (min-width: 768px) {
-    .dashboard {
-        flex-direction: row; /* Cambia a disposición horizontal */
-    }
-
-    .search-box {
-        flex-direction: row; /* Elementos de búsqueda en horizontal */
-        align-items: center;
-    }
-    
-    .search-box button {
-        width: auto;
-    }
-    
-    .kpi-container {
-        flex-direction: row; /* KPIs en fila en lugar de columna */
-    }
-    
-    .kpi {
-        flex: 1; /* Distribuye espacio equitativamente */
-    }
-    
-    .charts-section {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr); /* 2 gráficos por fila */
-    }
-    
-    #line-chart {
-        grid-column: span 2; /* Gráfico de línea ocupa toda la fila */
-    }
-}
-
-/* Para escritorio - Pantallas de 1024px o más */
-@media screen and (min-width: 1024px) {
-    .dashboard {
-        flex-direction: row;
+/* Responsive */
+@media (max-width: 1024px) {
+    .main-container {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "route"
+            "map"
+            "charts";
     }
     
     .map-container {
-        width: 50%; /* Mitad de la pantalla para el mapa */
-        height: calc(100vh - 30px); /* Altura casi completa de la ventana */
-    }
-    
-    #mapid {
-        height: 100%; /* Mapa ocupa todo el alto disponible */
-        flex-grow: 1;
-    }
-    
-    .analysis-container {
-        width: 50%; /* Mitad de la pantalla para análisis */
-        max-height: calc(100vh - 30px);
-        overflow-y: auto; /* Permite scroll si el contenido es extenso */
-    }
-    
-    .charts-section {
-        grid-template-columns: repeat(2, 1fr);
+        height: 400px;
     }
 }
 
-/* Para pantallas grandes - 1440px o más */
-@media screen and (min-width: 1440px) {
-    .charts-section {
-        grid-template-columns: repeat(3, 1fr); /* 3 gráficos por fila */
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        gap: 15px;
     }
     
-    #line-chart {
-        grid-column: auto; /* Ya no ocupa toda la fila */
+    .dashboard-grid {
+        grid-template-columns: 1fr;
     }
-}
-
-/* Oculta las instrucciones de ruta generadas por Leaflet */
-.leaflet-routing-container {
-    display: none !important; /* Oculta completamente el contenedor de rutas */
+    
+    .benefits {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .footer-content {
+        flex-direction: column;
+        gap: 20px;
+    }
 }

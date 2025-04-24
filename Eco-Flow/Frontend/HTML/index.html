@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoFlow - Optimización de Rutas Sostenibles</title>
+    <link rel="stylesheet" href="../CSS/styles.css">
+    <link rel="stylesheet" href="../CSS/stile.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="icon" href="../assets/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <link rel='stylesheet' type='text/css' href='https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/TrafficFlow/1.0.1/TrafficFlow.css'/>
+    <script src='https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/TrafficFlow/1.0.1/TrafficFlow-web.js'></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header class="main-header">
+            <div class="logo-container">
+                <img src="../assets/img/logo.png" alt="EcoFlow Logo" class="logo">
+                <h1>EcoFlow</h1>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html" class="active">Mapa</a></li>
+                    <li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="about.html">Acerca de</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <section class="map-container">
+                <div id="map"></div>
+            </section>
+
+            <section class="sidebar">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Planificador de Rutas</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="search-container">
+                            <h3>Buscar lugares</h3>
+                            <div class="search-box">
+                                <input type="text" id="search-input" placeholder="Buscar lugar...">
+                                <button id="search-button">Buscar</button>
+                            </div>
+                            
+                            <!-- Añadir este div para la ubicación -->
+                            <div class="location-container">
+                                <button id="use-current-location" class="btn-location">
+                                    <span class="location-icon">📍</span> Usar mi ubicación
+                                </button>
+                            </div>
+                            
+                            <div id="search-results" class="search-results"></div>
+                        </div>
+                        
+                        <div class="waypoints-container">
+                            <h3>Puntos de la ruta</h3>
+                            <div id="waypoints-list" class="waypoints-list"></div>
+                            <button id="optimize-route" class="btn-optimize">Optimizar ruta</button>
+                        </div>
+                        
+                        <div class="route-options">
+                            <h3>Opciones de transporte</h3>
+                            <div class="transport-options">
+                                <label class="transport-option">
+                                    <input type="radio" name="transport" value="car" checked>
+                                    <span class="option-icon">🚗</span>
+                                    <span>Auto</span>
+                                </label>
+                                <label class="transport-option">
+                                    <input type="radio" name="transport" value="bike">
+                                    <span class="option-icon">🚲</span>
+                                    <span>Bicicleta</span>
+                                </label>
+                                <label class="transport-option">
+                                    <input type="radio" name="transport" value="walk">
+                                    <span class="option-icon">🚶</span>
+                                    <span>A pie</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Estadísticas de Ruta</h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="route-stats" class="route-stats">
+                            <div class="no-route-message">
+                                Selecciona puntos en el mapa para calcular una ruta
+                            </div>
+                        </div>
+                        <div class="emissions-saved">
+                            <h3>Impacto ambiental</h3>
+                            <div class="emissions-chart-container">
+                                <canvas id="emissionsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="main-footer">
+            <p>&copy; 2025 EcoFlow - Plataforma de Optimización de Rutas Sostenibles</p>
+        </footer>
+    </div>
+
+    <!-- Importar scripts en el orden correcto -->
+    <script src="../JS/api.js"></script>
+    <script src="../JS/charts.js"></script>
+    <script src="../JS/scripts.js"></script>
+</body>
+</html>
