@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoFlow - Dashboard</title>    
+    <link rel="stylesheet" href="../CSS/styles.css">
+    <link rel="stylesheet" href="../CSS/stile.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header class="main-header">
+            <div class="logo-container">
+                <img src="../assets/img/logo.png" alt="EcoFlow Logo" class="logo">
+                <h1>EcoFlow</h1>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html">Mapa</a></li>
+                    <li><a href="dashboard.html" class="active">Dashboard</a></li>
+                    <li><a href="about.html">Acerca de</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main class="dashboard-content">
+            <div class="dashboard-header">
+                <h2>Panel de Control de Emisiones</h2>
+                <div class="date-filter">
+                    <label for="date-range">Período:</label>
+                    <select id="date-range">
+                        <option value="week">Última semana</option>
+                        <option value="month" selected>Último mes</option>
+                        <option value="year">Último año</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h2>Distribución de Emisiones</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="transportEmissionsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h2>Tráfico en Tiempo Real</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="trafficChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h2>Ahorro Mensual de Emisiones</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="monthlySavingsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card stats-card">
+                    <div class="card-header">
+                        <h2>Resumen de Impacto</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-value">325 kg</div>
+                                <div class="stat-label">CO2 ahorrado</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">42</div>
+                                <div class="stat-label">Rutas optimizadas</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">187 km</div>
+                                <div class="stat-label">Distancia reducida</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">12.5 h</div>
+                                <div class="stat-label">Tiempo ahorrado</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="main-footer">
+            <p>&copy; 2025 EcoFlow - Plataforma de Optimización de Rutas Sostenibles | Bogotá, Colombia</p>
+        </footer>
+    </div>
+
+    <script src="../JS/api.js"></script>
+    <script src="../JS/charts.js"></script>
+    <script src="../JS/scripts.js"></script>
+</body>
+</html>
