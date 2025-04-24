@@ -8,6 +8,14 @@ let currentMarkers = []; // Marcadores en el mapa
 let currentRouteLayer = null; // Capa de la ruta actual
 let selectedVehicleType = 'car'; // Tipo de vehículo seleccionado por defecto
 
+// Variables para la animación de ruta
+let routeAnimationMarker = null;
+let routeAnimationPath = [];
+let routeAnimationIndex = 0;
+let routeAnimationTimer = null;
+let routeAnimationSpeed = 50; // ms entre cada paso
+let isAnimationPlaying = false;
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log("DOM cargado completamente");
     
@@ -172,16 +180,41 @@ async function searchPlaces(query) {
     }
 }
 
-// Función para añadir un waypoint a la ruta
+// Función para añadir un waypoint a la ruta, con soporte para arrastrar
 function addWaypoint(place) {
     routeWaypoints.push(place);
     updateWaypointsList();
     
-    // Añadir marcador al mapa
+    // Añadir marcador al mapa y hacerlo arrastrable
     if (map) {
-        const marker = L.marker([place.lat, place.lon])
-            .addTo(map)
-            .bindPopup(place.name);
+        const marker = L.marker([place.lat, place.lon], {
+            draggable: true // Hacer el marcador arrastrable
+        }).addTo(map)
+          .bindPopup(place.name);
+        
+        // Índice del waypoint actual
+        const waypointIndex = routeWaypoints.length - 1;
+        
+        // Agregar listener para cuando termina de arrastrarse
+        marker.on('dragend', function(event) {
+            // Obtener nueva posición
+            const position = marker.getLatLng();
+            
+            // Actualizar coordenadas en el array de waypoints
+            routeWaypoints[waypointIndex].lat = position.lat;
+            routeWaypoints[waypointIndex].lon = position.lng;
+            
+            // Actualizar etiqueta de popup si es necesario
+            marker.bindPopup(routeWaypoints[waypointIndex].name);
+            
+            // Recalcular ruta con los puntos actualizados
+            if (routeWaypoints.length >= 2) {
+                calculateAndDisplayRoute();
+            }
+            
+            // Actualizar la lista visual de waypoints
+            updateWaypointsList();
+        });
         
         currentMarkers.push(marker);
         
@@ -205,11 +238,20 @@ function updateWaypointsList() {
     routeWaypoints.forEach((waypoint, index) => {
         const waypointElement = document.createElement('div');
         waypointElement.className = 'waypoint-item';
+        
+        // Agregar información sobre la capacidad de arrastrar
         waypointElement.innerHTML = `
             <span class="waypoint-number">${index + 1}</span>
             <span class="waypoint-name">${waypoint.name}</span>
+            <span class="waypoint-drag-hint">🔄</span>
             <button class="btn-remove-waypoint" data-index="${index}">🗑️</button>
         `;
+        
+        // Permitir reordenar los waypoints (opcional)
+        waypointElement.setAttribute('draggable', 'true');
+        waypointElement.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', index);
+        });
         
         waypointsContainer.appendChild(waypointElement);
     });
@@ -240,9 +282,47 @@ function updateWaypointsList() {
                 
                 // Limpiar estadísticas
                 const statsContainer = document.getElementById('route-stats');
-                if (statsContainer) statsContainer.innerHTML = '';
+                if (statsContainer) {
+                    statsContainer.innerHTML = `
+                        <div class="no-route-message">
+                            Selecciona puntos en el mapa para calcular una ruta
+                        </div>
+                    `;
+                }
             }
         });
+    });
+    
+    // Permitir soltar elementos para reordenar (opcional)
+    waypointsContainer.addEventListener('dragover', (e) => {
+        e.preventDefault();
+    });
+    
+    waypointsContainer.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+        const toElement = e.target.closest('.waypoint-item');
+        
+        if (!toElement) return;
+        
+        const toIndex = Array.from(waypointsContainer.children).indexOf(toElement);
+        
+        if (fromIndex !== toIndex) {
+            // Reordenar waypoints
+            const [movedWaypoint] = routeWaypoints.splice(fromIndex, 1);
+            routeWaypoints.splice(toIndex, 0, movedWaypoint);
+            
+            // Reordenar marcadores
+            const [movedMarker] = currentMarkers.splice(fromIndex, 1);
+            currentMarkers.splice(toIndex, 0, movedMarker);
+            
+            updateWaypointsList();
+            
+            // Recalcular ruta con el nuevo orden
+            if (routeWaypoints.length >= 2) {
+                calculateAndDisplayRoute();
+            }
+        }
     });
 }
 
@@ -460,10 +540,13 @@ function displayRoute(route) {
         map.removeLayer(currentRouteLayer);
     }
     
+    // Detener cualquier animación en curso
+    stopRouteAnimation();
+    
     // Crear array de coordenadas para la ruta
     const routeCoordinates = route.path.map(point => [point.lat, point.lon]);
     
-    // Crear línea de ruta
+    // Crear una polilínea para la ruta
     currentRouteLayer = L.polyline(routeCoordinates, {
         color: '#0e7c7b',
         weight: 6,
@@ -475,6 +558,39 @@ function displayRoute(route) {
         map.fitBounds(currentRouteLayer.getBounds(), {
             padding: [50, 50]
         });
+    }
+    
+    // Guardar la ruta para la animación
+    routeAnimationPath = routeCoordinates;
+    
+    // Crear y agregar el botón de animación
+    addAnimationButton();
+}
+
+// Función para agregar el botón de animación
+function addAnimationButton() {
+    // Eliminar botón previo si existe
+    removeAnimationButton();
+    
+    // Crear el nuevo botón
+    const animationButton = document.createElement('div');
+    animationButton.id = 'route-animation-button';
+    animationButton.className = 'route-animation-button';
+    animationButton.innerHTML = '<span>▶️ Simular recorrido</span>';
+    animationButton.title = 'Ver animación de la ruta';
+    
+    // Agregar evento
+    animationButton.addEventListener('click', animateRoute);
+    
+    // Añadir al contenedor del mapa
+    document.querySelector('.map-container').appendChild(animationButton);
+}
+
+// Función para eliminar el botón de animación
+function removeAnimationButton() {
+    const existingButton = document.getElementById('route-animation-button');
+    if (existingButton) {
+        existingButton.remove();
     }
 }
 
@@ -605,5 +721,208 @@ function handleLocationError(error) {
             errorElement.remove();
         }
     }, 5000);
+}
+
+// Función para iniciar la animación de ruta
+function animateRoute() {
+    // Si ya hay una animación en curso, la pausamos o reanudamos
+    if (routeAnimationMarker) {
+        toggleAnimation();
+        return;
+    }
+    
+    // Reiniciar índice de animación
+    routeAnimationIndex = 0;
+    
+    // Si no hay puntos de ruta, salir
+    if (!routeAnimationPath || routeAnimationPath.length < 2) {
+        console.error("No hay ruta para animar");
+        return;
+    }
+    
+    // Crear icono según el tipo de vehículo seleccionado
+    const vehicleIcon = getVehicleIcon(selectedVehicleType);
+    
+    // Crear marcador personalizado para la animación
+    const customIcon = L.divIcon({
+        className: 'vehicle-marker-icon',
+        html: `<div class="vehicle-icon">${vehicleIcon}</div>`,
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+    });
+    
+    // Crear marcador en la primera coordenada de la ruta
+    routeAnimationMarker = L.marker(routeAnimationPath[0], {
+        icon: customIcon,
+        zIndexOffset: 1000 // Para que aparezca por encima de otros marcadores
+    }).addTo(map);
+    
+    // Ajustar mapa para ver bien el punto inicial
+    map.setView(routeAnimationPath[0], Math.max(map.getZoom(), 14));
+    
+    // Cambiar el botón de animación
+    updateAnimationButton(true);
+    
+    // Añadir controles de la animación
+    addAnimationControls();
+    
+    // Iniciar la animación
+    isAnimationPlaying = true;
+    moveMarkerAlongRoute();
+}
+
+// Función para obtener el ícono adecuado según el tipo de vehículo
+function getVehicleIcon(vehicleType) {
+    switch(vehicleType) {
+        case 'car':
+            return '🚗';
+        case 'bike':
+            return '🚲';
+        case 'foot':
+            return '🚶';
+        default:
+            return '🚗';
+    }
+}
+
+// Función para mover el marcador a lo largo de la ruta
+function moveMarkerAlongRoute() {
+    if (!isAnimationPlaying || !routeAnimationMarker) return;
+    
+    // Si llegamos al final de la ruta
+    if (routeAnimationIndex >= routeAnimationPath.length - 1) {
+        // Volver al inicio para repetir
+        routeAnimationIndex = 0;
+        
+        // Opcional: detener la animación al completar
+        // stopRouteAnimation();
+        // return;
+    }
+    
+    // Mover marcador a la siguiente posición
+    routeAnimationMarker.setLatLng(routeAnimationPath[routeAnimationIndex]);
+    
+    // Centrar mapa en el marcador si está fuera de vista
+    if (!map.getBounds().contains(routeAnimationPath[routeAnimationIndex])) {
+        map.panTo(routeAnimationPath[routeAnimationIndex]);
+    }
+    
+    // Incrementar índice para el siguiente movimiento
+    routeAnimationIndex++;
+    
+    // Programar el siguiente movimiento
+    routeAnimationTimer = setTimeout(moveMarkerAlongRoute, routeAnimationSpeed);
+}
+
+// Función para pausar/reanudar la animación
+function toggleAnimation() {
+    isAnimationPlaying = !isAnimationPlaying;
+    
+    updateAnimationButton(isAnimationPlaying);
+    
+    if (isAnimationPlaying) {
+        moveMarkerAlongRoute();
+    } else {
+        clearTimeout(routeAnimationTimer);
+    }
+}
+
+// Función para detener la animación
+function stopRouteAnimation() {
+    // Limpiar el temporizador
+    if (routeAnimationTimer) {
+        clearTimeout(routeAnimationTimer);
+        routeAnimationTimer = null;
+    }
+    
+    // Quitar el marcador
+    if (routeAnimationMarker) {
+        map.removeLayer(routeAnimationMarker);
+        routeAnimationMarker = null;
+    }
+    
+    // Quitar los controles
+    removeAnimationControls();
+    
+    // Restablecer estados
+    isAnimationPlaying = false;
+    routeAnimationIndex = 0;
+    
+    // Actualizar botón
+    updateAnimationButton(false);
+}
+
+// Función para añadir controles de animación
+function addAnimationControls() {
+    // Eliminar controles previos si existen
+    removeAnimationControls();
+    
+    // Crear contenedor de controles
+    const controlsContainer = document.createElement('div');
+    controlsContainer.id = 'animation-controls';
+    controlsContainer.className = 'animation-controls';
+    
+    // Botón de parar
+    const stopButton = document.createElement('button');
+    stopButton.innerHTML = '⏹️';
+    stopButton.title = 'Detener animación';
+    stopButton.addEventListener('click', stopRouteAnimation);
+    
+    // Botón de pausar/reanudar
+    const pauseButton = document.createElement('button');
+    pauseButton.innerHTML = '⏸️';
+    pauseButton.title = 'Pausar animación';
+    pauseButton.addEventListener('click', toggleAnimation);
+    
+    // Controles de velocidad
+    const speedContainer = document.createElement('div');
+    speedContainer.className = 'animation-speed';
+    
+    const speedDownButton = document.createElement('button');
+    speedDownButton.innerHTML = '🐢';
+    speedDownButton.title = 'Más lento';
+    speedDownButton.addEventListener('click', () => {
+        routeAnimationSpeed = Math.min(routeAnimationSpeed * 1.5, 500);
+    });
+    
+    const speedUpButton = document.createElement('button');
+    speedUpButton.innerHTML = '🐇';
+    speedUpButton.title = 'Más rápido';
+    speedUpButton.addEventListener('click', () => {
+        routeAnimationSpeed = Math.max(routeAnimationSpeed * 0.7, 10);
+    });
+    
+    // Ensamblar controles
+    speedContainer.appendChild(speedDownButton);
+    speedContainer.appendChild(speedUpButton);
+    
+    controlsContainer.appendChild(stopButton);
+    controlsContainer.appendChild(pauseButton);
+    controlsContainer.appendChild(speedContainer);
+    
+    // Añadir al mapa
+    document.querySelector('.map-container').appendChild(controlsContainer);
+}
+
+// Función para eliminar controles de animación
+function removeAnimationControls() {
+    const existingControls = document.getElementById('animation-controls');
+    if (existingControls) {
+        existingControls.remove();
+    }
+}
+
+// Función para actualizar el botón de animación
+function updateAnimationButton(isPlaying) {
+    const animationButton = document.getElementById('route-animation-button');
+    if (!animationButton) return;
+    
+    if (isPlaying) {
+        animationButton.innerHTML = '<span>⏸️ Pausar simulación</span>';
+    } else if (routeAnimationMarker) {
+        animationButton.innerHTML = '<span>▶️ Continuar simulación</span>';
+    } else {
+        animationButton.innerHTML = '<span>▶️ Simular recorrido</span>';
+    }
 }
 
