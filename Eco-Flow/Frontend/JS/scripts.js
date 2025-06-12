@@ -926,3 +926,29 @@ function updateAnimationButton(isPlaying) {
     }
 }
 
+document.addEventListener('DOMContentLoaded', function() {
+    const hamburgerBtn = document.querySelector('.hamburger-btn');
+    const mainNav = document.querySelector('.main-nav');
+    
+    if (hamburgerBtn && mainNav) {
+        hamburgerBtn.addEventListener('click', function() {
+            mainNav.classList.toggle('active');
+            
+            // Cambiar ícono entre hamburguesa y X
+            if (mainNav.classList.contains('active')) {
+                hamburgerBtn.innerHTML = '✕'; // Icono de cerrar
+            } else {
+                hamburgerBtn.innerHTML = '☰'; // Icono de hamburguesa
+            }
+        });
+        
+        // Cerrar menú al hacer clic en un enlace
+        const navLinks = document.querySelectorAll('.main-nav a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                mainNav.classList.remove('active');
+                hamburgerBtn.innerHTML = '☰';
+            });
+        });
+    }
+});
